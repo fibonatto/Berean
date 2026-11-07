@@ -1,0 +1,31 @@
+{
+  "books": [
+    {
+      "id": "gen",
+      "abbrev": "gen",
+      "name": "Genesis",
+      "chapters": [
+        {
+          "chapter": 1,
+          "verses": [
+            { "verse": 1, "text": "First verse." },
+            { "verse": 2, "text": "Second verse." },
+            { "verse": 3, "text": "Third verse." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1jo",
+      "abbrev": "1jn",
+      "name": "1 John",
+      "aliases": ["1 jn"],
+      "chapters": [
+        {
+          "chapter": 1,
+          "verses": [{ "verse": 1, "text": "Numbered book verse." }]
+        }
+      ]
+    }
+  ]
+}

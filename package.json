@@ -1,0 +1,21 @@
+{
+  "name": "bt",
+  "version": "0.1.0",
+  "description": "Read Bible passages in the terminal",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "bt": "bin/bt.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "data"
+  ],
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
