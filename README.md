@@ -17,7 +17,7 @@ Psalms 23  KJV
 Requires Node.js 18 or newer. No external dependencies.
 
 ```sh
-git clone https://github.com/USER/berean.git
+git clone https://github.com/fibonatto/Berean.git
 cd berean
 npm link
 ```
