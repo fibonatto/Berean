@@ -22,7 +22,7 @@ export function parseArgs(argv) {
     version: false,
     list: false,
     color: null,
-    translation: DEFAULT_TRANSLATION,
+    translation: null,
     search: null,
     limit: DEFAULT_LIMIT,
     positional: [],

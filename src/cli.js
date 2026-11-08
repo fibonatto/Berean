@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { parseArgs } from "./args.js";
+import { DEFAULT_TRANSLATION, parseArgs } from "./args.js";
 import { findBook, selectPassage } from "./books.js";
 import { DEFAULT_DATA_DIR, listTranslations, loadBooks } from "./data.js";
 import { CliError, UsageError } from "./errors.js";
@@ -31,7 +31,8 @@ export function run(argv, { isTTY = false, columns = 80, env = {} } = {}) {
   const style = createStyle(colorEnabled(opts, { isTTY, env }));
   const width = Math.min(columns, MAX_WIDTH);
   const dir = env.BT_DATA_DIR || DEFAULT_DATA_DIR;
-  const { id, books } = loadBooks(dir, opts.translation);
+  const requested = opts.translation ?? (env.BT_TRANSLATION || DEFAULT_TRANSLATION);
+  const { id, books } = loadBooks(dir, requested);
 
   if (opts.list) {
     return renderList({ translations: listTranslations(dir), books }, { style });

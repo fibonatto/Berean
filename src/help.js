@@ -22,7 +22,7 @@ Search ignores case, accents and word order, and tolerates small
 typos. Verses containing the exact phrase are listed first.
 
 Options:
-  -t, --translation <id>  translation to read (default: ${DEFAULT_TRANSLATION})
+  -t, --translation <id>  translation to read (default: $BT_TRANSLATION or ${DEFAULT_TRANSLATION})
   -s, --search <query>    search verses for words or a phrase
   -n, --limit <count>     maximum search results (default: ${DEFAULT_LIMIT})
   -l, --list              list translations and books
@@ -32,4 +32,5 @@ Options:
 
 Environment:
   NO_COLOR, FORCE_COLOR   control colored output
+  BT_TRANSLATION          default translation id
   BT_DATA_DIR             directory holding the bible-<id>.json files`;
