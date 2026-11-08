@@ -7,7 +7,7 @@ import { run } from "../src/cli.js";
 
 const fixtures = fileURLToPath(new URL("./fixtures/", import.meta.url));
 const bin = fileURLToPath(new URL("../bin/bt.js", import.meta.url));
-const env = { BT_DATA_DIR: fixtures };
+const env = { BT_DATA_DIR: fixtures, BT_TRANSLATION: "" };
 const bt = (args, options = {}) => run(args, { env, ...options });
 
 test("prints a single verse", () => {

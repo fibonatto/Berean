@@ -5,55 +5,66 @@ const TRANSLATIONS = {
   acf: "Almeida Corrigida Fiel",
   kjf: "King James Fiel",
   naa: "Nova Almeida Atualizada",
+  ntlh: "Nova Tradução na Linguagem de Hoje",
   nvi: "Nova Versão Internacional",
   nvt: "Nova Versão Transformadora",
 };
 
-function normalize(id) {
-  const file = fileURLToPath(new URL(`../data/bible-${id}.json`, import.meta.url));
-  const raw = JSON.parse(readFileSync(file, "utf8").replace(/^\uFEFF/, ""));
+const dataFile = (id) => fileURLToPath(new URL(`../data/bible-${id}.json`, import.meta.url));
+
+const readJson = (file) => JSON.parse(readFileSync(file, "utf8").replace(/^\uFEFF/, ""));
+
+const isNested = (book) => Array.isArray(book.chapters?.[0]?.verses);
+
+function convertChapters(id, book, skipped) {
+  if (!Array.isArray(book.chapters)) {
+    throw new Error(`${id}: invalid chapters in ${book.name}`);
+  }
+
+  return book.chapters.map((verses, chapterIndex) => {
+    const chapter = chapterIndex + 1;
+    if (!Array.isArray(verses)) {
+      throw new Error(`${id}: invalid chapter ${chapter} in ${book.name}`);
+    }
+
+    return {
+      chapter,
+      verses: verses.flatMap((text, verseIndex) => {
+        const verse = verseIndex + 1;
+        if (typeof text !== "string") {
+          throw new Error(`${id}: invalid verse ${chapter}:${verse} in ${book.name}`);
+        }
+        if (!text.trim()) {
+          skipped.push(`${book.name} ${chapter}:${verse}`);
+          return [];
+        }
+        return [{ verse, text }];
+      }),
+    };
+  });
+}
+
+function normalize(id, reference) {
+  const file = dataFile(id);
+  const raw = readJson(file);
 
   const sourceBooks = Array.isArray(raw) ? raw : raw.books;
   if (!Array.isArray(sourceBooks)) {
     throw new Error(`${id}: expected an array of books`);
   }
-
-  const first = sourceBooks[0]?.chapters?.[0];
-  if (first && !Array.isArray(first) && Array.isArray(first.verses)) {
-    console.log(`${id}: already normalized, skipped`);
-    return;
+  if (sourceBooks.length !== reference.length) {
+    throw new Error(`${id}: expected ${reference.length} books, found ${sourceBooks.length}`);
   }
 
   const skipped = [];
-  const books = sourceBooks.map((book) => {
-    if (!Array.isArray(book.chapters)) {
-      throw new Error(`${id}: invalid chapters in ${book.name}`);
+  const warnings = [];
+  const books = sourceBooks.map((book, index) => {
+    const chapters = isNested(book) ? book.chapters : convertChapters(id, book, skipped);
+    const expected = reference[index].chapters.length;
+    if (chapters.length !== expected) {
+      warnings.push(`${book.name}: ${chapters.length} chapters, KJV has ${expected}`);
     }
-
-    return {
-      ...book,
-      chapters: book.chapters.map((verses, chapterIndex) => {
-        const chapter = chapterIndex + 1;
-        if (!Array.isArray(verses)) {
-          throw new Error(`${id}: invalid chapter ${chapter} in ${book.name}`);
-        }
-
-        return {
-          chapter,
-          verses: verses.flatMap((text, verseIndex) => {
-            const verse = verseIndex + 1;
-            if (typeof text !== "string") {
-              throw new Error(`${id}: invalid verse ${chapter}:${verse} in ${book.name}`);
-            }
-            if (!text.trim()) {
-              skipped.push(`${book.name} ${chapter}:${verse}`);
-              return [];
-            }
-            return [{ verse, text }];
-          }),
-        };
-      }),
-    };
+    return { id: reference[index].id, ...book, chapters };
   });
 
   const data = { translation: id, source: TRANSLATIONS[id], books };
@@ -63,6 +74,7 @@ function normalize(id) {
   if (skipped.length) {
     console.log(`  skipped ${skipped.length} empty verses: ${skipped.join(", ")}`);
   }
+  for (const warning of warnings) console.log(`  check: ${warning}`);
 }
 
 const ids = process.argv.slice(2);
@@ -73,4 +85,9 @@ if (!ids.length || unknown.length) {
   process.exit(2);
 }
 
-ids.forEach(normalize);
+const reference = readJson(dataFile("kjv")).books;
+if (!reference.every((book) => book.id)) {
+  throw new Error("kjv: every book needs an id to serve as reference");
+}
+
+ids.forEach((id) => normalize(id, reference));

@@ -249,3 +249,8 @@ berean/
 Berean is a lightweight, dependency-free command-line Bible reader.
 
 Berean supports translations with different biblical canons, including the deuterocanonical books present in the Bíblia Ave Maria.
+
+
+## Acknowledgments
+
+Berean uses Bible translation data from [damarals/biblias](https://github.com/damarals/biblias). Many thanks to Daniel Amaral for making these datasets openly available.
