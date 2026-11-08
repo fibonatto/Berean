@@ -1,6 +1,20 @@
 import { UsageError } from "./errors.js";
 
 export const DEFAULT_TRANSLATION = "kjv";
+export const DEFAULT_LIMIT = 10;
+
+function requireValue(option, value) {
+  if (!value) throw new UsageError(`option ${option} requires a value`);
+  return value;
+}
+
+function parseLimit(option, value) {
+  const limit = Number(requireValue(option, value));
+  if (!Number.isInteger(limit) || limit < 1) {
+    throw new UsageError(`option ${option} requires a positive integer`);
+  }
+  return limit;
+}
 
 export function parseArgs(argv) {
   const opts = {
@@ -9,6 +23,8 @@ export function parseArgs(argv) {
     list: false,
     color: null,
     translation: DEFAULT_TRANSLATION,
+    search: null,
+    limit: DEFAULT_LIMIT,
     positional: [],
   };
 
@@ -28,6 +44,14 @@ export function parseArgs(argv) {
       opts.translation = value;
     } else if (arg.startsWith("--translation=")) {
       opts.translation = arg.slice("--translation=".length);
+    } else if (arg === "-s" || arg === "--search") {
+      opts.search = requireValue(arg, argv[++i]);
+    } else if (arg.startsWith("--search=")) {
+      opts.search = requireValue("--search", arg.slice("--search=".length));
+    } else if (arg === "-n" || arg === "--limit") {
+      opts.limit = parseLimit(arg, argv[++i]);
+    } else if (arg.startsWith("--limit=")) {
+      opts.limit = parseLimit("--limit", arg.slice("--limit=".length));
     } else if (arg.startsWith("-")) {
       throw new UsageError(`unknown option: ${arg}`);
     } else {

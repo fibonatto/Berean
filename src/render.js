@@ -3,7 +3,7 @@ const MIN_TEXT_WIDTH = 20;
 
 export function createStyle(enabled) {
   const paint = (code) => (text) => (enabled ? `\x1b[${code}m${text}\x1b[0m` : text);
-  return { bold: paint(1), dim: paint(2) };
+  return { bold: paint(1), dim: paint(2), match: paint("1;33") };
 }
 
 export function wrap(text, width) {
@@ -36,6 +36,52 @@ export function renderPassage({ book, chapter, from, to, verses }, { translation
   });
 
   return `${[header, ...body].join("\n")}\n`;
+}
+
+function emphasize(line, offset, marks, style) {
+  let out = "";
+  let cursor = 0;
+  for (const { start, end } of marks) {
+    const from = start - offset;
+    const to = end - offset;
+    if (from < cursor || to > line.length) continue;
+    out += line.slice(cursor, from) + style.match(line.slice(from, to));
+    cursor = to;
+  }
+  return out + line.slice(cursor);
+}
+
+export function renderSearch(
+  { query, hits, total, partial },
+  { translation, style, width },
+) {
+  const noun = total === 1 ? "result" : "results";
+  const summary = `${total} ${noun}${partial ? ", partial matches" : ""}`;
+  const header = [
+    style.bold(`"${query}"`),
+    style.dim(translation.toUpperCase()),
+    style.dim(summary),
+  ].join("  ");
+
+  const indent = " ".repeat(GUTTER);
+  const textWidth = Math.max(width - GUTTER, MIN_TEXT_WIDTH);
+
+  const entries = hits.map((hit) => {
+    const reference = style.bold(`${hit.book.name} ${hit.chapter}:${hit.verse}`);
+    let offset = 0;
+    const lines = wrap(hit.text, textWidth).map((line) => {
+      const rendered = `${indent}${emphasize(line, offset, hit.marks, style)}`;
+      offset += line.length + 1;
+      return rendered;
+    });
+    return [reference, ...lines].join("\n");
+  });
+
+  const blocks = [header, ...entries];
+  if (hits.length < total) {
+    blocks.push(style.dim(`showing the first ${hits.length}; use -n <count> for more`));
+  }
+  return `${blocks.join("\n\n")}\n`;
 }
 
 export function renderList({ translations, books }, { style }) {
